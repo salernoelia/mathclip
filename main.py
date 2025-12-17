@@ -5,23 +5,20 @@ import subprocess
 import matplotlib.pyplot as plt
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.completion import WordCompleter
+from prompt_toolkit.completion import WordCompleter, Completer, Completion
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.filters import Condition
+from prompt_toolkit.document import Document
 from PIL import Image
 
-# Configuration
 DPI = 300
 FONT_SIZE = 50
 
-# Style: Computer Modern
 plt.rcParams["mathtext.fontset"] = "cm"
 plt.rcParams["font.family"] = "serif"
 
-# --- INTELLISENSE LIST ---
 latex_commands = [
-    # Greek lowercase
     "alpha",
     "beta",
     "gamma",
@@ -52,7 +49,6 @@ latex_commands = [
     "chi",
     "psi",
     "omega",
-    # Greek uppercase
     "Gamma",
     "Delta",
     "Theta",
@@ -64,7 +60,6 @@ latex_commands = [
     "Phi",
     "Psi",
     "Omega",
-    # Binary operators
     "pm",
     "mp",
     "times",
@@ -97,7 +92,6 @@ latex_commands = [
     "ddagger",
     "wr",
     "setminus",
-    # Relations
     "leq",
     "le",
     "geq",
@@ -139,7 +133,6 @@ latex_commands = [
     "dashv",
     "notin",
     "notsubset",
-    # Arrows
     "leftarrow",
     "gets",
     "longleftarrow",
@@ -175,7 +168,6 @@ latex_commands = [
     "searrow",
     "swarrow",
     "nwarrow",
-    # Delimiters
     "left",
     "right",
     "big",
@@ -192,7 +184,6 @@ latex_commands = [
     "rbrace",
     "lbrack",
     "rbrack",
-    # Large operators
     "sum",
     "prod",
     "coprod",
@@ -289,7 +280,6 @@ latex_commands = [
     "negthinspace",
     "negmedspace",
     "negthickspace",
-    # Text & fonts
     "text",
     "textrm",
     "textit",
@@ -306,10 +296,8 @@ latex_commands = [
     "mathfrak",
     "mathscr",
     "boldsymbol",
-    # Structure
     "binom",
     "choose",
-    # Symbols
     "infty",
     "partial",
     "nabla",
@@ -364,13 +352,85 @@ latex_commands = [
     "limits",
     "nolimits",
 ]
-# Add backslashes
-latex_completer = WordCompleter(
-    [f"\\{c}" for c in latex_commands],
-    ignore_case=True,
-    sentence=True,
-    match_middle=False,
-)
+
+LATEX_SNIPPETS = {
+    "frac": "frac{}{}",
+    "dfrac": "dfrac{}{}",
+    "tfrac": "tfrac{}{}",
+    "cfrac": "cfrac{}{}",
+    "sqrt": "sqrt{}",
+    "binom": "binom{}{}",
+    "text": "text{}",
+    "textrm": "textrm{}",
+    "textit": "textit{}",
+    "textbf": "textbf{}",
+    "textsf": "textsf{}",
+    "texttt": "texttt{}",
+    "mathrm": "mathrm{}",
+    "mathit": "mathit{}",
+    "mathbf": "mathbf{}",
+    "mathsf": "mathsf{}",
+    "mathtt": "mathtt{}",
+    "mathcal": "mathcal{}",
+    "mathbb": "mathbb{}",
+    "mathfrak": "mathfrak{}",
+    "mathscr": "mathscr{}",
+    "boldsymbol": "boldsymbol{}",
+    "hat": "hat{}",
+    "check": "check{}",
+    "breve": "breve{}",
+    "acute": "acute{}",
+    "grave": "grave{}",
+    "tilde": "tilde{}",
+    "bar": "bar{}",
+    "vec": "vec{}",
+    "dot": "dot{}",
+    "ddot": "ddot{}",
+    "widehat": "widehat{}",
+    "widetilde": "widetilde{}",
+    "overline": "overline{}",
+    "underline": "underline{}",
+    "overbrace": "overbrace{}",
+    "underbrace": "underbrace{}",
+    "overrightarrow": "overrightarrow{}",
+    "overleftarrow": "overleftarrow{}",
+    "sum": "sum_{}^{}",
+    "prod": "prod_{}^{}",
+    "int": "int_{}^{}",
+    "lim": "lim_{}",
+    "matrix": "matrix{  \\\\  }",
+    "pmatrix": "pmatrix{  \\\\  }",
+    "bmatrix": "bmatrix{  \\\\  }",
+    "Bmatrix": "Bmatrix{  \\\\  }",
+    "vmatrix": "vmatrix{  \\\\  }",
+    "Vmatrix": "Vmatrix{  \\\\  }",
+    "cases": "cases{  \\\\  }",
+}
+
+
+class LatexCompleter(Completer):
+    def __init__(self, words):
+        self.words = sorted(words)
+        self.word_completer = WordCompleter(
+            words, ignore_case=True, sentence=True, match_middle=False
+        )
+
+    def get_completions(self, document, complete_event):
+        for completion in self.word_completer.get_completions(document, complete_event):
+            cmd_name = completion.text.lstrip("\\")
+            if cmd_name in LATEX_SNIPPETS:
+                snippet = LATEX_SNIPPETS[cmd_name]
+                yield Completion(
+                    text="\\" + snippet,
+                    start_position=completion.start_position,
+                    display=completion.text,
+                    display_meta="[snippet]",
+                )
+            else:
+                yield completion
+
+
+latex_completer = LatexCompleter([f"\\{c}" for c in latex_commands])
 
 
 def get_image_bytes(image_buffer, fmt="PNG"):
@@ -473,18 +533,29 @@ def main():
         event.current_buffer.insert_text("[]")
         event.current_buffer.cursor_left()
 
-    # Pass completer and key bindings to session
+    @kb.add("c-space")
+    def _(event):
+        """Navigate to next placeholder in snippet (jump to next {})"""
+        buffer = event.current_buffer
+        text = buffer.text
+        cursor = buffer.cursor_position
+
+        next_brace = text.find("{", cursor)
+        if next_brace != -1:
+            buffer.cursor_position = next_brace + 1
+
     session = PromptSession(
         history=InMemoryHistory(),
         completer=latex_completer,
         key_bindings=kb,
         enable_open_in_editor=False,
     )
-    print("LaTeX CLI (TAB for Intellisense). Type 'exit' to quit.")
+    print(
+        "LaTeX CLI (TAB for Intellisense, Ctrl+Space to jump to next placeholder). Type 'exit' to quit."
+    )
 
     while True:
         try:
-            # complete_while_typing=True makes the menu pop up automatically
             text = session.prompt("LaTeX > ", complete_while_typing=True)
 
             if text.strip().lower() in ["exit", "quit"]:
@@ -495,7 +566,7 @@ def main():
             try:
                 png_buffer = render_latex(text)
                 send_to_clipboard(png_buffer)
-                print("✓ Copied")
+                print("Copied")
             except Exception as e:
                 print(f"Error: {e}")
 
