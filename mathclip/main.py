@@ -411,23 +411,36 @@ LATEX_SNIPPETS = {
 class LatexCompleter(Completer):
     def __init__(self, words):
         self.words = sorted(words)
-        self.word_completer = WordCompleter(
-            words, ignore_case=True, sentence=True, match_middle=False
-        )
 
     def get_completions(self, document, complete_event):
-        for completion in self.word_completer.get_completions(document, complete_event):
-            cmd_name = completion.text.lstrip("\\")
-            if cmd_name in LATEX_SNIPPETS:
-                snippet = LATEX_SNIPPETS[cmd_name]
-                yield Completion(
-                    text="\\" + snippet,
-                    start_position=completion.start_position,
-                    display=completion.text,
-                    display_meta="[snippet]",
-                )
-            else:
-                yield completion
+        text_before_cursor = document.text_before_cursor
+        
+        last_backslash = text_before_cursor.rfind('\\')
+        if last_backslash == -1:
+            return
+        
+        word_after_backslash = text_before_cursor[last_backslash + 1:]
+        
+        if not all(c.isalpha() or c == '' for c in word_after_backslash):
+            return
+        
+        for word in self.words:
+            cmd_name = word.lstrip('\\')
+            if cmd_name.lower().startswith(word_after_backslash.lower()):
+                if cmd_name in LATEX_SNIPPETS:
+                    snippet = LATEX_SNIPPETS[cmd_name]
+                    yield Completion(
+                        text=snippet,
+                        start_position=-len(word_after_backslash),
+                        display='\\' + cmd_name,
+                        display_meta="[snippet]",
+                    )
+                else:
+                    yield Completion(
+                        text=cmd_name,
+                        start_position=-len(word_after_backslash),
+                        display='\\' + cmd_name,
+                    )
 
 
 latex_completer = LatexCompleter([f"\\{c}" for c in latex_commands])

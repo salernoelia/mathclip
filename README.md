@@ -1,5 +1,16 @@
 # Mathclip
 
+<img width="842" height="606" alt="Screenshot 2025-12-28 at 22 28 59" src="https://github.com/user-attachments/assets/7ee65cff-c4fd-4727-880e-33d21177723f" />
+
+<img
+  width="1144"
+  height="231"
+  alt="image"
+  style="background-color: #ffffff"
+  src="https://github.com/user-attachments/assets/f53adcc5-ef6d-4988-b51f-8f470edd277f"
+/>
+
+
 **Mathclip** converts LaTeX strings into high-resolution transparent PNG images and copies them directly to your clipboard.
 
 ## Functionality
@@ -13,14 +24,18 @@
 * **Auto-pairing:** Automatically closes braces, parentheses, and brackets.
 
 
-<img width="842" height="606" alt="Screenshot 2025-12-28 at 22 28 59" src="https://github.com/user-attachments/assets/7ee65cff-c4fd-4727-880e-33d21177723f" />
 
-<img
-  width="1144"
-  height="231"
-  alt="image"
-  style="background-color: #ffffff"
-  src="https://github.com/user-attachments/assets/f53adcc5-ef6d-4988-b51f-8f470edd277f"
-/>
 
+## Install (with uv package manager)
+
+
+Fetch deps:
+```sh
+uv sync
+```
+
+Global Install:
+```sh
+uv tool install . 
+```
 
