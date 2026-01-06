@@ -2,14 +2,6 @@
 
 <img width="842" height="606" alt="Screenshot 2025-12-28 at 22 28 59" src="https://github.com/user-attachments/assets/7ee65cff-c4fd-4727-880e-33d21177723f" />
 
-<img
-  width="1144"
-  height="231"
-  alt="image"
-  style="background-color: #ffffff"
-  src="https://github.com/user-attachments/assets/f53adcc5-ef6d-4988-b51f-8f470edd277f"
-/>
-
 
 **Mathclip** converts LaTeX strings into high-resolution transparent PNG images and copies them directly to your clipboard.
 
@@ -18,6 +10,23 @@
 Run `python -m mathclip.main` to start.  
 Use `-w`, `-r`, `-b`, or `-g` to render in white, red, blue, or green for the session.  
 Type LaTeX, press Enter to copy image to clipboard. Type `exit` to quit.
+
+<img
+  width="1144"
+  height="231"
+  alt="image"
+  src="https://github.com/user-attachments/assets/f53adcc5-ef6d-4988-b51f-8f470edd277f"
+/>
+
+<img
+  width="1144"
+  height="231"
+  alt="image"
+  style="filter: invert(1);"
+  src="https://github.com/user-attachments/assets/f53adcc5-ef6d-4988-b51f-8f470edd277f"
+/>
+
+
 
 ## Functionality
 
