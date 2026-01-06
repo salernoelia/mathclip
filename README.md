@@ -13,6 +13,12 @@
 
 **Mathclip** converts LaTeX strings into high-resolution transparent PNG images and copies them directly to your clipboard.
 
+## Usage
+
+Run `python -m mathclip.main` to start.  
+Use `-w`, `-r`, `-b`, or `-g` to render in white, red, blue, or green for the session.  
+Type LaTeX, press Enter to copy image to clipboard. Type `exit` to quit.
+
 ## Functionality
 
 * **Render LaTeX to Image:** Uses Matplotlib to generate a high-quality (300 DPI) image from math syntax.
@@ -22,8 +28,6 @@
 * **Snippets:** Automatically inserts brackets for complex commands (e.g., `\frac{}{}`).
 * **Smart Navigation:** Use `Ctrl + Space` to jump between placeholders in snippets.
 * **Auto-pairing:** Automatically closes braces, parentheses, and brackets.
-
-
 
 
 ## Install (with uv package manager)
@@ -37,5 +41,13 @@ uv sync
 Global Install:
 ```sh
 uv tool install . 
+```
+
+### Linux
+
+Requires xclip to run, ubuntu / debian: 
+
+```sh
+sudo apt install xclip
 ```
 

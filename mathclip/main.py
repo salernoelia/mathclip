@@ -2,6 +2,7 @@ import io
 import sys
 import platform
 import subprocess
+import argparse
 import matplotlib.pyplot as plt
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import InMemoryHistory
@@ -14,6 +15,7 @@ from PIL import Image
 
 DPI = 300
 FONT_SIZE = 50
+DEFAULT_COLOR = "black"
 
 plt.rcParams["mathtext.fontset"] = "cm"
 plt.rcParams["font.family"] = "serif"
@@ -496,7 +498,7 @@ def send_to_clipboard(png_buffer):
         process.communicate(input=png_buffer.getvalue())
 
 
-def render_latex(formula):
+def render_latex(formula, color="black"):
     buf = io.BytesIO()
     fig = plt.figure(figsize=(0.1, 0.1))
     text = fig.text(
@@ -506,7 +508,7 @@ def render_latex(formula):
         fontsize=FONT_SIZE,
         ha="center",
         va="center",
-        color="black",
+        color=color,
     )
 
     fig.canvas.draw()
@@ -528,7 +530,17 @@ def render_latex(formula):
 
 
 def main():
-    # Create key bindings for auto bracket matching
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description="LaTeX to clipboard renderer")
+    parser.add_argument("-w", "--white", action="store_const", const="white", dest="color", help="Render in white")
+    parser.add_argument("-r", "--red", action="store_const", const="red", dest="color", help="Render in red")
+    parser.add_argument("-b", "--blue", action="store_const", const="blue", dest="color", help="Render in blue")
+    parser.add_argument("-g", "--green", action="store_const", const="green", dest="color", help="Render in green")
+    parser.set_defaults(color=DEFAULT_COLOR)
+    args = parser.parse_args()
+    
+    render_color = args.color
+    
     kb = KeyBindings()
 
     @kb.add("{")
@@ -564,7 +576,7 @@ def main():
         enable_open_in_editor=False,
     )
     print(
-        "LaTeX CLI (TAB for Intellisense, Ctrl+Space to jump to next placeholder). Type 'exit' to quit."
+        f"LaTeX CLI (color: {render_color}) - TAB for Intellisense, Ctrl+Space to jump to next placeholder. Type 'exit' to quit."
     )
 
     while True:
@@ -577,7 +589,7 @@ def main():
                 continue
 
             try:
-                png_buffer = render_latex(text)
+                png_buffer = render_latex(text, color=render_color)
                 send_to_clipboard(png_buffer)
                 print("Copied")
             except Exception as e:
